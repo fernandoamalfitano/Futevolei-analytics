@@ -11,11 +11,6 @@ Proyecto final del bootcamp de Big Data, Inteligencia Artificial y Machine Learn
 
 https://github.com/user-attachments/assets/afe71e6e-7234-4150-8acd-133ac8d1e413
 
-
-
-
-
-
 ## Cómo funciona
 
 ```
