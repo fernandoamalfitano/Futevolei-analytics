@@ -1,3 +1,43 @@
+# Futevôlei Analytics: estadísticas automáticas de partidos con visión por computador
+
+A partir del vídeo de un partido de futevôlei (*footvolley*), el sistema detecta el balón, los jugadores y la cancha, divide el partido en jugadas y calcula las estadísticas de cada equipo: **saques, aces, ataques y eficiencia de ataque**. Hoy estas estadísticas se recogen a mano mirando el partido.
+
+Proyecto final del bootcamp de Big Data, Inteligencia Artificial y Machine Learning, desarrollado en equipo.
+
+**Stack:** Python · YOLOv8 · YOLO11 (pose) · Roboflow · OpenCV · pandas · SciPy · PostgreSQL · Google Colab
+
+<!-- Añade aquí una imagen o un GIF del vídeo procesado (con las cajas del balón y los jugadores) y otra de la tabla de estadísticas: -->
+<!-- ![Vídeo procesado](docs/video_procesado.gif) -->
+
+---
+
+## Cómo funciona
+
+```
+Vídeo del partido
+   │
+   ├─ 1. Detección del balón y los jugadores (YOLOv8s) en cada fotograma
+   ├─ 2. Trayectoria del balón: seguimiento propio, relleno de huecos y suavizado
+   ├─ 3. Segmentación en jugadas: del saque al final del punto (sin repeticiones ni primeros planos)
+   │
+   ├─ Revisión manual: quitar jugadas falsas, añadir las que faltan e indicar los cambios de lado
+   │
+   ├─ 4. Puntos clave de la cancha (YOLO11-L pose) y homografía: de píxeles a metros
+   ├─ 5. Toques, cruces de la red y resultado de cada golpe: punto, defendido o fuera
+   │
+   └─ 6. Estadísticas por equipo → tablas, vídeo con anotaciones y base de datos PostgreSQL
+```
+
+## Resultados y decisiones clave
+
+- **Seguimiento del balón propio:** cubre el **85%** de los fotogramas, frente al 70% y el 65% de los trackers estándar (ByteTrack y BoT-SORT).
+- **Homografía con solo 3 esquinas visibles:** cuando la cámara no ve la cancha entera, se estima el cuarto punto a partir de la última homografía válida y del giro de la cámara.
+- **Sin fuga de datos:** el conjunto de entrenamiento, validación y prueba se separa por **vídeos completos**, porque los fotogramas consecutivos de un mismo vídeo son casi idénticos.
+- **Aumentos de datos desactivados en el modelo de la cancha:** los volteos y recortes intercambiaban la identidad de las esquinas y enseñaban al modelo asociaciones incorrectas.
+- **Estadísticas por equipo, no por jugador:** los trackers no mantenían la identidad de los jugadores tras cruces y oclusiones.
+
+---
+
 ## Metodología
 
 ### Recolección y preparación de los datos
@@ -71,3 +111,46 @@ El ganador del punto se decide así:
 Por defecto se asume que los equipos cambian de lado cada 6 puntos. Pero si la transmisión no muestra algún punto, la cuenta queda corrida. Por eso la función recibe una lista con las jugadas en que ocurre cada cambio (por ejemplo, 7, 13, …), que armamos revisando el video. También permite excluir jugadas mal segmentadas y agregar las que faltan.
 
 Por lo tanto, el proceso no es completamente automático: tras generar el video segmentado, hay que revisarlo manualmente para indicar los cambios de lado y corregir las jugadas.
+
+---
+
+## Limitaciones y próximos pasos
+
+- El proceso requiere una **revisión manual** de las jugadas antes de calcular las estadísticas.
+- Las estadísticas son **por equipo**. Para obtenerlas por jugador haría falta un seguimiento que mantenga la identidad, por ejemplo con re-identificación por apariencia o por posición en la cancha.
+- **Próximos pasos:** reducir la revisión manual, estadísticas por jugador y un panel de visualización a partir de la base de datos.
+
+## Estructura del repositorio
+
+```
+├── futevolei_code/          # módulos del pipeline
+│   ├── detection.py         # detección de balón y jugadores con YOLO
+│   ├── ball_trajectory.py   # seguimiento y suavizado de la trayectoria del balón
+│   ├── rallies.py           # segmentación del vídeo en jugadas
+│   ├── camera.py            # movimiento de la cámara entre fotogramas
+│   ├── homographies.py      # homografía de la cancha
+│   ├── match_stats.py       # toques, golpes y estadísticas por equipo
+│   ├── database.py          # guardado en PostgreSQL
+│   └── pipeline.py          # orquestación de las etapas
+├── models/                  # pesos entrenados (balón/jugadores y cancha)
+├── notebooks/
+│   └── futevolei_pipeline_final.ipynb   # pipeline completo, listo para Colab
+├── training/                # entrenamiento de los dos modelos YOLO
+├── sql/schema.sql           # esquema de la base de datos
+└── requirements.txt
+```
+
+## Cómo ejecutarlo
+
+1. Sube la carpeta `futevolei_code/` (o un .zip con ella) y los modelos de `models/` a Google Drive.
+2. Abre `notebooks/futevolei_pipeline_final.ipynb` en Google Colab con GPU y ajusta `CODE_DIR` y las rutas del vídeo y los modelos.
+3. **Paso 1:** detecta las jugadas y genera un vídeo de revisión con cada jugada numerada.
+4. **Revisión:** anota las jugadas que hay que quitar o añadir y los cambios de lado.
+5. **Paso 2:** calcula las estadísticas y genera el vídeo con anotaciones.
+6. **Paso 3 (opcional):** guarda los resultados en PostgreSQL (`sql/schema.sql`).
+
+## Equipo
+
+- **Fernando Amalfitano**: [LinkedIn](https://www.linkedin.com/in/fernando-amalfitano-051751388/)
+- **Ignacio Emanuelli**
+- **Cristian David Noreña Saldarriaga**
