@@ -1,6 +1,6 @@
 # Futevôlei Analytics: estadísticas automáticas de partidos con visión por computador
 
-A partir del vídeo de un partido de futevôlei (*footvolley*), el sistema detecta el balón, los jugadores y la cancha, divide el partido en jugadas y calcula las estadísticas de cada equipo: **saques, aces, ataques y eficiencia de ataque**. 
+A partir del vídeo de un partido de futevôlei (*footvolley*), el sistema detecta el balón, los jugadores y la cancha, divide el partido en jugadas y calcula las estadísticas de cada equipo: **saques, aces, ataques y eficiencia de ataque**. Estas estadísticas se recogen normalmente a mano. Aquí lo que hacemos en automatizar el proceso.
 
 Proyecto final del bootcamp de Big Data, Inteligencia Artificial y Machine Learning, desarrollado en equipo.
 
